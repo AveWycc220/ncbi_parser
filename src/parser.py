@@ -37,7 +37,8 @@ class Parser:
     @staticmethod
     def __get_files(request):
         FileSystem.create_folder('Literature', request)
-        Parser.__books(request)
+        #Parser.__books(request)
+        Parser.__mesh(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -52,7 +53,6 @@ class Parser:
     def __replace_elem_for_windows(string):
         string = string.replace(':', '')
         string = string.replace(';', '')
-        string = string.replace(',', '')
         string = string.replace('.', '')
         string = string.replace('|', '')
         string = string.replace('/', '')
@@ -65,7 +65,7 @@ class Parser:
         content = requests.get(f'https://www.ncbi.nlm.nih.gov/books/?term={request}').content.decode('utf-8')
         soup = BeautifulSoup(content, 'html.parser')
         content_list = []
-        books_list = []
+        literature_url_list = []
         if not soup.find(id="Details"):
             driver = webdriver.Chrome(executable_path=FileSystem.get_driver())
             driver.get(url=f'https://www.ncbi.nlm.nih.gov/books/?term={request}')
@@ -82,9 +82,9 @@ class Parser:
                 soup = BeautifulSoup(content_list[i], 'html.parser')
                 titles_list = soup.findAll(True, {"class": "title"})
                 for j in range(0, len(titles_list)):
-                    books_list.append(titles_list[j].a['href'])
-            for i in range(0, len(books_list)):
-                driver.get(url=f'https://www.ncbi.nlm.nih.gov{books_list[i]}')
+                    literature_url_list.append(titles_list[j].a['href'])
+            for i in range(0, len(literature_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{literature_url_list[i]}')
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                 titles = driver.find_elements_by_class_name('title')
                 full_title = soup.findAll(True, {"class": "rsltcont"})[0].p.decode_contents()
@@ -128,6 +128,52 @@ class Parser:
                         pyautogui.hotkey('enter')
                         time.sleep(1)
                     driver.back()
+                    time.sleep(1)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()
+
+    @staticmethod
+    def __mesh(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/mesh/?term={request}').content.decode('utf-8')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        literature_url_list = []
+        if not soup.find(id="Details"):
+            driver = webdriver.Chrome(executable_path=FileSystem.get_driver())
+            driver.get(url=f'https://www.ncbi.nlm.nih.gov/mesh/?term={request}')
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                while 'inactive' not in next.get_attribute('class'):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "title"})
+                for j in range(0, len(titles_list)):
+                    literature_url_list.append(titles_list[j].a['href'])
+            for i in range(0, len(literature_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{literature_url_list[i]}')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                full_title = soup.findAll(True, {"class": "title"})[0].text
+                full_title = Parser.__replace_elem_for_windows(full_title)
+                if not FileSystem.is_exist(f'{full_title}.html',
+                                           f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Literature\\MeSH\\'):
+                    pyautogui.hotkey('ctrl', 's')
+                    time.sleep(1)
+                    pyautogui.typewrite(
+                        f'{FileSystem.get_directory()}data_parser\\'
+                        f'{string_request}\\Literature\\MeSH\\{full_title}.html')
+                    time.sleep(1)
+                    pyautogui.hotkey('enter')
                     time.sleep(1)
             try:
                 raise WebDriverException

@@ -38,3 +38,7 @@ class FileSystem:
     @staticmethod
     def get_directory():
         return f'{THIS_FOLDER}\\..\\'
+
+    @staticmethod
+    def is_exist(elem, directory):
+        return elem in os.listdir(path=directory)

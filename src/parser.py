@@ -83,9 +83,10 @@ class Parser:
                 driver.get(url=f'https://www.ncbi.nlm.nih.gov{books_list[i]}')
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                 titles = driver.find_elements_by_class_name('title')
-                title_book = soup.findAll(True, {"class": "rsltcont"})[0].p.decode_contents()
-                title_book = ''.join(title_book.split(' ')[0:4])
+                full_title = soup.findAll(True, {"class": "rsltcont"})[0].p.decode_contents()
+                title_book = ''.join(full_title.split(' ')[0:4])
                 title_book = Parser.__replace_elem_for_windows(title_book)
+                full_title = Parser.__replace_elem_for_windows(full_title)
                 if not FileSystem.is_exist(f'{title_book}', f'{FileSystem.get_directory()}data_parser\\'
                                                        f'{string_request}\\Literature\\Books\\'):
                     os.mkdir(f'{FileSystem.get_directory()}data_parser\\'
@@ -96,6 +97,21 @@ class Parser:
                     title_part = ' '.join(title_part.split(' ')[0:5])
                     title_part = Parser.__replace_elem_for_windows(title_part)
                     titles[j].find_element_by_tag_name('a').click()
+                    if j == 1:
+                        pdf = driver.find_elements_by_xpath("//*[contains(text(), 'PDF version of this title')]")
+                        if len(pdf) == 1 and not FileSystem.is_exist(f'{full_title}', f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Literature\\Books\\{title_book}\\'):
+                            pdf[0].click()
+                            pyautogui.hotkey('ctrl', 's')
+                            time.sleep(1)
+                            pyautogui.typewrite(
+                                f'{FileSystem.get_directory()}data_parser\\'
+                                f'{string_request}\\Literature\\Books\\{title_book}\\{full_title}.pdf')
+                            time.sleep(1)
+                            pyautogui.hotkey('enter')
+                            time.sleep(1)
+                            driver.back()
+                            time.sleep(1)
                     if not FileSystem.is_exist(f'{title_part}.html',
                                            f'{FileSystem.get_directory()}data_parser\\'
                                            f'{string_request}\\Literature\\Books\\{title_book}\\'):

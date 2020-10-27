@@ -19,6 +19,9 @@ class FileSystem:
         if type == 'request':
             if f'{request}' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\') and request:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}')
+        if type == 'Literature':
+            if 'Books' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\Books')
 
     @staticmethod
     def create_categoies_folders(request, categories):
@@ -31,3 +34,7 @@ class FileSystem:
     def get_driver():
         """ Get Path of WebDriver Chome 86"""
         return f'{THIS_FOLDER}\\..\\chromedriver.exe'
+
+    @staticmethod
+    def get_directory():
+        return f'{THIS_FOLDER}\\..\\'

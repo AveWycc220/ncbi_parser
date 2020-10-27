@@ -24,4 +24,10 @@ class FileSystem:
     def create_categoies_folders(request, categories):
         """ Create Categories Folders"""
         for elem in categories:
-            os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{elem}')
+            if f'{elem}' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\'):
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{elem}')
+
+    @staticmethod
+    def get_driver():
+        """ Get Path of WebDriver Chome 86"""
+        return f'{THIS_FOLDER}\\..\\chromedriver.exe'

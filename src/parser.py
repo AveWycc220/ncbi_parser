@@ -20,6 +20,7 @@ DB_NAME_LIST = ['books', 'mesh', 'nlmcatalog', 'pubmed', 'pmc', 'gene', 'gds', '
                 'bioproject', 'biosample', 'genome', 'nuccore', 'sra', 'taxonomy', 'clinicaltrials.gov', 'clinvar',
                 'gap', 'snp', 'dbvar', 'gtr', 'medgen', 'omim', 'bioassay', 'compound', 'pathway', 'substance']
 DB_CATEGORIES_LIST = ['Literature', 'Genes', 'Proteins', 'Genomes', 'Clinical', 'PubChem']
+TIME_SLEEP = 1
 
 
 class Parser:
@@ -38,7 +39,9 @@ class Parser:
     def __get_files(request):
         FileSystem.create_folder('Literature', request)
         #Parser.__books(request)
-        Parser.__mesh(request)
+        #Parser.__mesh(request)
+        #Parser.__nlmcatalog(request)
+        Parser.__pubmed(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -107,28 +110,28 @@ class Parser:
                                            f'{string_request}\\Literature\\Books\\{title_book}\\'):
                             pdf[0].click()
                             pyautogui.hotkey('ctrl', 's')
-                            time.sleep(1)
+                            time.sleep(TIME_SLEEP)
                             pyautogui.typewrite(
                                 f'{FileSystem.get_directory()}data_parser\\'
                                 f'{string_request}\\Literature\\Books\\{title_book}\\{full_title}.pdf')
-                            time.sleep(1)
+                            time.sleep(TIME_SLEEP)
                             pyautogui.hotkey('enter')
-                            time.sleep(1)
+                            time.sleep(TIME_SLEEP)
                             driver.back()
-                            time.sleep(1)
+                            time.sleep(TIME_SLEEP)
                     if not FileSystem.is_exist(f'{title_part}.html',
                                            f'{FileSystem.get_directory()}data_parser\\'
                                            f'{string_request}\\Literature\\Books\\{title_book}\\'):
                         pyautogui.hotkey('ctrl', 's')
-                        time.sleep(1)
+                        time.sleep(TIME_SLEEP)
                         pyautogui.typewrite(
                             f'{FileSystem.get_directory()}data_parser\\'
                             f'{string_request}\\Literature\\Books\\{title_book}\\{title_part}.html')
-                        time.sleep(1)
+                        time.sleep(TIME_SLEEP)
                         pyautogui.hotkey('enter')
-                        time.sleep(1)
+                        time.sleep(TIME_SLEEP)
                     driver.back()
-                    time.sleep(1)
+                    time.sleep(TIME_SLEEP)
             try:
                 raise WebDriverException
             except WebDriverException:
@@ -168,14 +171,138 @@ class Parser:
                                            f'{FileSystem.get_directory()}data_parser\\'
                                            f'{string_request}\\Literature\\MeSH\\'):
                     pyautogui.hotkey('ctrl', 's')
-                    time.sleep(1)
+                    time.sleep(TIME_SLEEP/2)
                     pyautogui.typewrite(
                         f'{FileSystem.get_directory()}data_parser\\'
                         f'{string_request}\\Literature\\MeSH\\{full_title}.html')
-                    time.sleep(1)
+                    time.sleep(TIME_SLEEP/2)
                     pyautogui.hotkey('enter')
-                    time.sleep(1)
+                    time.sleep(TIME_SLEEP/2)
             try:
                 raise WebDriverException
             except WebDriverException:
                 driver.close()
+
+    @staticmethod
+    def __nlmcatalog(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/nlmcatalog/?term={request}').content.decode('utf-8')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        literature_url_list = []
+        if not soup.find(id="Details"):
+            driver = webdriver.Chrome(executable_path=FileSystem.get_driver())
+            driver.get(url=f'https://www.ncbi.nlm.nih.gov/nlmcatalog/?term={request}')
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                while 'inactive' not in next.get_attribute('class'):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "title"})
+                for j in range(0, len(titles_list)):
+                    literature_url_list.append(titles_list[j].a['href'])
+            for i in range(0, len(literature_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{literature_url_list[i]}')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                full_title = soup.findAll(True, {"class": "title"})[0].text[0:255]
+                full_title = Parser.__replace_elem_for_windows(full_title)
+                if not FileSystem.is_exist(f'{full_title}.html',
+                                           f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Literature\\NLM Catalog\\'):
+                    pyautogui.hotkey('ctrl', 's')
+                    time.sleep(TIME_SLEEP/2)
+                    pyautogui.typewrite(
+                        f'{FileSystem.get_directory()}data_parser\\'
+                        f'{string_request}\\Literature\\NLM Catalog\\{full_title}.html')
+                    time.sleep(TIME_SLEEP/2)
+                    pyautogui.hotkey('enter')
+                    time.sleep(TIME_SLEEP/2)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()
+
+    @staticmethod
+    def __pubmed(request):
+        string_request = request
+        content_list = []
+        literature_url_list = []
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://pubmed.ncbi.nlm.nih.gov/?term={request}').content.decode('utf-8')
+        soup = BeautifulSoup(content, 'html.parser')
+        if not soup.find(class_="altered-search-explanation"):
+            driver = webdriver.Chrome(executable_path=FileSystem.get_driver())
+            for i in range(0, 21):
+                driver.get(url=f'https://pubmed.ncbi.nlm.nih.gov/?term={request}&page={i}')
+                content_list.append(driver.page_source)
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "docsum-title"})
+                for j in range(0, len(titles_list)):
+                    literature_url_list.append(titles_list[j]['href'])
+            for i in range(0, len(literature_url_list)):
+                driver.get(url=f'https://pubmed.ncbi.nlm.nih.gov{literature_url_list[i]}')
+                elem = None
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                full_title = soup.findAll(True, {"class": "heading-title"})[0].text.strip()
+                full_title = Parser.__replace_elem_for_windows(full_title)
+                try:
+                    temp_elem = driver.find_element_by_class_name('linkout-category-links')
+                    temp_elem = temp_elem.find_elements_by_tag_name('li')
+                    for j in range(0, len(temp_elem)):
+                        if temp_elem[j].text.strip() == 'MedGen':
+                            elem = temp_elem[j]
+                            break
+                except NoSuchElementException:
+                    pass
+                try:
+                    temp_elem = driver.find_element_by_class_name('linkout-category-links')
+                    temp_elem = temp_elem.find_elements_by_tag_name('li')
+                    for j in range(0, len(temp_elem)):
+                        if temp_elem[j].text.strip() == 'PubMed Central':
+                            elem = temp_elem[j]
+                            break
+                except NoSuchElementException:
+                    pass
+                if elem:
+                    elem_name = elem.text
+                    elem.find_element_by_tag_name('a').click()
+                    time.sleep(TIME_SLEEP * 2)
+                    driver.switch_to.window(driver.window_handles[1])
+                    if not FileSystem.is_exist(f'{elem_name} {full_title}.html',
+                                               f'{FileSystem.get_directory()}data_parser\\'
+                                               f'{string_request}\\Literature\\PubMed\\'):
+                        pyautogui.hotkey('ctrl', 's')
+                        time.sleep(TIME_SLEEP * 4)
+                        pyautogui.typewrite(
+                            f'{FileSystem.get_directory()}data_parser\\'
+                            f'{string_request}\\Literature\\PubMed\\{elem_name}{full_title}.html')
+                        time.sleep(TIME_SLEEP)
+                        pyautogui.hotkey('enter')
+                        time.sleep(TIME_SLEEP)
+                    driver.close()
+                    time.sleep(TIME_SLEEP)
+                    driver.switch_to.window(driver.window_handles[0])
+                if not FileSystem.is_exist(f'{full_title}.html',
+                                           f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Literature\\PubMed\\'):
+                    pyautogui.hotkey('ctrl', 's')
+                    time.sleep(TIME_SLEEP)
+                    pyautogui.typewrite(
+                        f'{FileSystem.get_directory()}data_parser\\'
+                        f'{string_request}\\Literature\\PubMed\\{full_title}.html')
+                    time.sleep(TIME_SLEEP)
+                    pyautogui.hotkey('enter')
+                    time.sleep(TIME_SLEEP)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()
+

@@ -6,6 +6,7 @@ from selenium import webdriver
 import os
 import pyautogui
 import time
+from selenium.common.exceptions import NoSuchElementException,  WebDriverException
 
 """ CONSTS """
 DB_LIST = ['Bookshelf', 'MeSH', 'NLM Catalog', 'PubMed', 'PubMed Central', 'Gene', 'GEO DataSets',
@@ -35,6 +36,7 @@ class Parser:
 
     @staticmethod
     def __get_files(request):
+        FileSystem.create_folder('Literature', request)
         Parser.__books(request)
 
     @staticmethod
@@ -58,7 +60,6 @@ class Parser:
 
     @staticmethod
     def __books(request):
-        FileSystem.create_folder('Literature', request)
         string_request = request
         request = Parser.__replace_elem_in_request(request)
         content = requests.get(f'https://www.ncbi.nlm.nih.gov/books/?term={request}').content.decode('utf-8')
@@ -69,11 +70,14 @@ class Parser:
             driver = webdriver.Chrome(executable_path=FileSystem.get_driver())
             driver.get(url=f'https://www.ncbi.nlm.nih.gov/books/?term={request}')
             content_list.append(driver.page_source)
-            next = driver.find_element_by_class_name('next')
-            while 'inactive' not in next.get_attribute('class'):
-                next.click()
-                content_list.append(driver.page_source)
+            try:
                 next = driver.find_element_by_class_name('next')
+                while 'inactive' not in next.get_attribute('class'):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
             for i in range(0, len(content_list)):
                 soup = BeautifulSoup(content_list[i], 'html.parser')
                 titles_list = soup.findAll(True, {"class": "title"})
@@ -99,7 +103,7 @@ class Parser:
                     titles[j].find_element_by_tag_name('a').click()
                     if j == 1:
                         pdf = driver.find_elements_by_xpath("//*[contains(text(), 'PDF version of this title')]")
-                        if len(pdf) == 1 and not FileSystem.is_exist(f'{full_title}', f'{FileSystem.get_directory()}data_parser\\'
+                        if len(pdf) == 1 and not FileSystem.is_exist(f'{full_title}.pdf', f'{FileSystem.get_directory()}data_parser\\'
                                            f'{string_request}\\Literature\\Books\\{title_book}\\'):
                             pdf[0].click()
                             pyautogui.hotkey('ctrl', 's')
@@ -125,3 +129,7 @@ class Parser:
                         time.sleep(1)
                     driver.back()
                     time.sleep(1)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()

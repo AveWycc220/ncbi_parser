@@ -7,6 +7,7 @@ import os
 import pyautogui
 import time
 from selenium.common.exceptions import NoSuchElementException,  WebDriverException
+import re
 
 """ CONSTS """
 DB_LIST = ['Bookshelf', 'MeSH', 'NLM Catalog', 'PubMed', 'PubMed Central', 'Gene', 'GEO DataSets',
@@ -27,21 +28,34 @@ class Parser:
     """ Class for parser """
 
     @staticmethod
-    def get_request(request: str):
+    def get_request(request: str, catalog: str):
         """ Get request and save documents """
         request = request.strip()
         FileSystem.create_parser_folder()
         FileSystem.create_folder('request', request)
         FileSystem.create_categoies_folders(request, DB_CATEGORIES_LIST)
-        Parser.__get_files(request)
+        Parser.__get_files(request, catalog)
 
     @staticmethod
-    def __get_files(request):
+    def __get_files(request, catalog):
+        print(catalog)
         FileSystem.create_folder('Literature', request)
-        #Parser.__books(request)
-        #Parser.__mesh(request)
-        #Parser.__nlmcatalog(request)
-        Parser.__pubmed(request)
+        if catalog == '1':
+            Parser.__books(request)
+            Parser.__mesh(request)
+            Parser.__nlmcatalog(request)
+            Parser.__pubmed(request)
+            Parser.__pmc(request)
+        elif catalog == '1.1':
+            Parser.__books(request)
+        elif catalog == '1.2':
+            Parser.__mesh(request)
+        elif catalog == '1.3':
+            Parser.__nlmcatalog(request)
+        elif catalog == '1.4':
+            Parser.__pubmed(request)
+        elif catalog == '1.5':
+            Parser.__pmc(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -59,6 +73,8 @@ class Parser:
         string = string.replace('.', '')
         string = string.replace('|', '')
         string = string.replace('/', '')
+        string = string.replace('--', '')
+        string = string.replace('®', '')
         return string
 
     @staticmethod
@@ -306,3 +322,50 @@ class Parser:
             except WebDriverException:
                 driver.close()
 
+    @staticmethod
+    def __pmc(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/pmc/?term={request}').content.decode('utf-8')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        literature_url_list = []
+        count = 0
+        if not soup.find(id="Details"):
+            driver = webdriver.Chrome(executable_path=FileSystem.get_driver())
+            driver.get(url=f'https://www.ncbi.nlm.nih.gov/pmc/?term={request}')
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                while 'inactive' not in next.get_attribute('class') and count != 0:
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+                    count += 1
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "title"})
+                for j in range(0, len(titles_list)):
+                    literature_url_list.append(titles_list[j].a['href'])
+            for i in range(0, len(literature_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{literature_url_list[i]}')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                full_title = soup.findAll(True, {"class": "content-title"})[0].text[0:255]
+                full_title = Parser.__replace_elem_for_windows(full_title)
+                if not FileSystem.is_exist(f'{full_title}.html',
+                                           f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Literature\\PubMed Central\\'):
+                    pyautogui.hotkey('ctrl', 's')
+                    time.sleep(TIME_SLEEP / 2)
+                    pyautogui.typewrite(
+                        f'{FileSystem.get_directory()}data_parser\\'
+                        f'{string_request}\\Literature\\PubMed Central\\{full_title}.html')
+                    time.sleep(TIME_SLEEP / 2)
+                    pyautogui.hotkey('enter')
+                    time.sleep(TIME_SLEEP / 2)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()

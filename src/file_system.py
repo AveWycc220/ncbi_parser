@@ -17,11 +17,20 @@ class FileSystem:
     def create_folder(type: str, request=None):
         """ Create folders depending on types """
         if type == 'request':
-            if f'{request}' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\') and request:
-                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}')
+            if f'{request.lower()}' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request.lower()}')
         if type == 'Literature':
             if 'Books' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\Books')
+            if 'MeSH' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\MeSH')
+            if 'NLM Catalog' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\d'
+                              f'ata_parser\\{request}\\Literature\\NLM Catalog')
+            if 'PubMed' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\PubMed')
+            if 'PubMed Central' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\PubMed Central')
 
     @staticmethod
     def create_categoies_folders(request, categories):

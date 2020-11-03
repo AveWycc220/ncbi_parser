@@ -91,6 +91,13 @@ class Parser:
         return string
 
     @staticmethod
+    def __close_chrome(driver):
+        try:
+            raise WebDriverException
+        except WebDriverException:
+            driver.close()
+
+    @staticmethod
     def __books(request):
         string_request = request
         request = Parser.__replace_elem_in_request(request)
@@ -161,10 +168,7 @@ class Parser:
                         time.sleep(TIME_SLEEP)
                     driver.back()
                     time.sleep(TIME_SLEEP)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __mesh(request):
@@ -207,10 +211,7 @@ class Parser:
                     time.sleep(TIME_SLEEP/2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP/2)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __nlmcatalog(request):
@@ -253,10 +254,7 @@ class Parser:
                     time.sleep(TIME_SLEEP/2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP/2)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __pubmed(request):
@@ -330,10 +328,7 @@ class Parser:
                     time.sleep(TIME_SLEEP)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __pmc(request):
@@ -378,10 +373,7 @@ class Parser:
                     time.sleep(TIME_SLEEP / 2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP / 2)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __gene(request):
@@ -457,10 +449,7 @@ class Parser:
                         time.sleep(TIME_SLEEP / 2)
                         pyautogui.hotkey('enter')
                         time.sleep(TIME_SLEEP / 2)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __gds(request):
@@ -505,10 +494,7 @@ class Parser:
                     time.sleep(TIME_SLEEP / 2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP * 2)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __geo(request):
@@ -568,10 +554,7 @@ class Parser:
                     time.sleep(TIME_SLEEP / 2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __homologene(request):
@@ -616,10 +599,7 @@ class Parser:
                     time.sleep(TIME_SLEEP / 2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)
 
     @staticmethod
     def __popset(request):
@@ -699,7 +679,4 @@ class Parser:
                         time.sleep(TIME_SLEEP / 2)
                         pyautogui.hotkey('enter')
                         time.sleep(TIME_SLEEP * 2)
-            try:
-                raise WebDriverException
-            except WebDriverException:
-                driver.close()
+            Parser.__close_chrome(driver)

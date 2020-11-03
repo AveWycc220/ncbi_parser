@@ -6,8 +6,12 @@ from selenium import webdriver
 import os
 import pyautogui
 import time
-from selenium.common.exceptions import NoSuchElementException,  WebDriverException
-import re
+from selenium.common.exceptions import NoSuchElementException,  WebDriverException, StaleElementReferenceException
+from selenium.webdriver import ActionChains
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 """ CONSTS """
 DB_LIST = ['Bookshelf', 'MeSH', 'NLM Catalog', 'PubMed', 'PubMed Central', 'Gene', 'GEO DataSets',
@@ -38,8 +42,8 @@ class Parser:
 
     @staticmethod
     def __get_files(request, catalog):
-        print(catalog)
         FileSystem.create_folder('Literature', request)
+        FileSystem.create_folder('Genes', request)
         if catalog == '1':
             Parser.__books(request)
             Parser.__mesh(request)
@@ -56,6 +60,8 @@ class Parser:
             Parser.__pubmed(request)
         elif catalog == '1.5':
             Parser.__pmc(request)
+        elif catalog == '2':
+            Parser.__gene(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -75,6 +81,9 @@ class Parser:
         string = string.replace('/', '')
         string = string.replace('--', '')
         string = string.replace('®', '')
+        string = string.replace('[', '')
+        string = string.replace(']', '')
+        string = string.strip()
         return string
 
     @staticmethod
@@ -365,6 +374,86 @@ class Parser:
                     time.sleep(TIME_SLEEP / 2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP / 2)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()
+
+    @staticmethod
+    def __gene(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/gene/?term={request}').content.decode('utf-8')
+        options = Options()
+        options.add_argument("--start-maximized")
+        driver = webdriver.Chrome(executable_path=FileSystem.get_driver(), options=options)
+        actionChains = ActionChains(driver)
+        driver.get(url=f'https://www.ncbi.nlm.nih.gov/gene/?term={request}')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        genes_url_list = []
+        if soup.find(class_='ncbi-doc-title'):
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                while 'inactive' not in next.get_attribute('class'):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "gene-name-id"})
+                for j in range(0, len(titles_list)):
+                    genes_url_list.append(titles_list[j].a['href'])
+            for i in range(0, len(genes_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{genes_url_list[i]}')
+                time.sleep(2)
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                full_title = soup.findAll(True, {"class": "title"})[0].text[0:255]
+                full_title = Parser.__replace_elem_for_windows(full_title)
+                try:
+                    download = driver.find_element_by_id('button-1083')
+                    download.click()
+                    time.sleep(TIME_SLEEP * 2)
+                    open_pdf = driver.find_element_by_id('menuitem-1056-itemEl')
+                    open_pdf.click()
+                    download = driver.find_element_by_id('button-1104')
+                    time.sleep(TIME_SLEEP)
+                    if not FileSystem.is_exist(f'graph_{full_title}.pdf',
+                                               f'{FileSystem.get_directory()}data_parser\\'
+                                               f'{string_request}\\Genes\\Gene\\'):
+                        download.click()
+                        time.sleep(TIME_SLEEP)
+                        pyautogui.hotkey('ctrl', 's')
+                        time.sleep(TIME_SLEEP)
+                        pyautogui.typewrite(
+                            f'{FileSystem.get_directory()}data_parser\\'
+                            f'{string_request}\\Genes\\Gene\\graph_{full_title}.pdf')
+                        time.sleep(TIME_SLEEP / 2)
+                        pyautogui.hotkey('enter')
+                        time.sleep(TIME_SLEEP / 2)
+                        driver.switch_to.window(driver.window_handles[1])
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                        time.sleep(2)
+                    close = driver.find_element_by_id('tool-1107-toolEl')
+                    close.click()
+                except (NoSuchElementException, StaleElementReferenceException):
+                    pass
+                finally:
+                    if not FileSystem.is_exist(f'{full_title}.html',
+                                               f'{FileSystem.get_directory()}data_parser\\'
+                                               f'{string_request}\\Genes\\Gene\\'):
+                        pyautogui.hotkey('ctrl', 's')
+                        time.sleep(TIME_SLEEP)
+                        pyautogui.typewrite(
+                            f'{FileSystem.get_directory()}data_parser\\'
+                            f'{string_request}\\Genes\\Gene\\{full_title}.html')
+                        time.sleep(TIME_SLEEP / 2)
+                        pyautogui.hotkey('enter')
+                        time.sleep(TIME_SLEEP / 2)
             try:
                 raise WebDriverException
             except WebDriverException:

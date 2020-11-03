@@ -34,6 +34,14 @@ class FileSystem:
         if type == 'Genes':
             if 'Gene' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Gene')
+            if 'GEO DataSets' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\GEO DataSets')
+            if 'GEO Profiles' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\GEO Profiles')
+            if 'Homologene' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Homologene')
+            if 'PopSet' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\PopSet')
 
     @staticmethod
     def create_categoies_folders(request, categories):

@@ -61,7 +61,8 @@ class Parser:
         elif catalog == '1.5':
             Parser.__pmc(request)
         elif catalog == '2':
-            Parser.__gene(request)
+            #Parser.__gene(request)
+            Parser.__gds(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -387,7 +388,6 @@ class Parser:
         options = Options()
         options.add_argument("--start-maximized")
         driver = webdriver.Chrome(executable_path=FileSystem.get_driver(), options=options)
-        actionChains = ActionChains(driver)
         driver.get(url=f'https://www.ncbi.nlm.nih.gov/gene/?term={request}')
         soup = BeautifulSoup(content, 'html.parser')
         content_list = []
@@ -458,3 +458,53 @@ class Parser:
                 raise WebDriverException
             except WebDriverException:
                 driver.close()
+
+    @staticmethod
+    def __gds(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/gds/?term={request}').content.decode('utf-8')
+        options = Options()
+        options.add_argument("--start-maximized")
+        driver = webdriver.Chrome(executable_path=FileSystem.get_driver(), options=options)
+        driver.get(url=f'https://www.ncbi.nlm.nih.gov/gds/?term={request}')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        genes_url_list = []
+        if not soup.findAll(True, {'class': 'warn'}):
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                while 'inactive' not in next.get_attribute('class'):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "title"})
+                for j in range(0, len(titles_list)):
+                    genes_url_list.append(titles_list[j].a['href'])
+            for i in range(0, len(genes_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{genes_url_list[i]}')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                full_title = soup.findAll(True, {"style": "text-align: justify"})[0].text[0:255]
+                full_title = Parser.__replace_elem_for_windows(full_title)
+                if not FileSystem.is_exist(f'{full_title}.html',
+                                           f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Genes\\GEO DataSets\\'):
+                    pyautogui.hotkey('ctrl', 's')
+                    time.sleep(TIME_SLEEP)
+                    pyautogui.typewrite(
+                        f'{FileSystem.get_directory()}data_parser\\'
+                        f'{string_request}\\Genes\\GEO DataSets\\{full_title}.html')
+                    time.sleep(TIME_SLEEP / 2)
+                    pyautogui.hotkey('enter')
+                    time.sleep(TIME_SLEEP * 2)
+            try:
+                raise WebDriverException
+            except WebDriverException:
+                driver.close()
+
+

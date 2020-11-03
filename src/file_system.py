@@ -21,16 +21,19 @@ class FileSystem:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request.lower()}')
         if type == 'Literature':
             if 'Books' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
-                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\Books')
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Books')
             if 'MeSH' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
-                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\MeSH')
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\MeSH')
             if 'NLM Catalog' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\d'
-                              f'ata_parser\\{request}\\Literature\\NLM Catalog')
+                              f'ata_parser\\{request}\\{type}\\NLM Catalog')
             if 'PubMed' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
-                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\PubMed')
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\PubMed')
             if 'PubMed Central' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
-                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\Literature\\PubMed Central')
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\PubMed Central')
+        if type == 'Genes':
+            if 'Gene' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Gene')
 
     @staticmethod
     def create_categoies_folders(request, categories):

@@ -94,7 +94,8 @@ class Parser:
             #Parser.__cdd(request)
             #Parser.__ipg(request)
             #Parser.__proteinclusters(request)
-            Parser.__sparcle(request)
+            #Parser.__sparcle(request)
+            Parser.__structure(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -1060,7 +1061,7 @@ class Parser:
                 titles_list = soup.findAll(True, {"class": "title"})
                 for j in range(0, len(titles_list)):
                     genomes_url_list.append(titles_list[j].a['href'])
-            for i in rane(0, len(genomes_url_list)):
+            for i in range(0, len(genomes_url_list)):
                 driver.get(url=f'https://www.ncbi.nlm.nih.gov{genomes_url_list[i]}')
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                 full_title = soup.findAll(True, {"class": "details"})[0].b.text
@@ -1264,6 +1265,54 @@ class Parser:
                     pyautogui.typewrite(
                         f'{FileSystem.get_directory()}data_parser\\'
                         f'{string_request}\\Proteins\\Sparcle\\{full_title_list[i]}[{count}].html')
+                    time.sleep(TIME_SLEEP / 2)
+                    pyautogui.hotkey('enter')
+                    time.sleep(TIME_SLEEP * 2)
+            Parser.__close_chrome(driver)
+
+    @staticmethod
+    def __structure(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/structure/?term={request}').content.decode('utf-8')
+        options = Options()
+        options.add_argument("--start-maximized")
+        driver = webdriver.Chrome(executable_path=FileSystem.get_driver(), options=options)
+        driver.get(url=f'https://www.ncbi.nlm.nih.gov/structure/?term={request}')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        genomes_url_list = []
+        full_title_list = []
+        if not soup.findAll(True, {'class': 'warn'}):
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                for i in range(2):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "title"})
+                for j in range(0, len(titles_list)):
+                    genomes_url_list.append(titles_list[j].a['href'])
+                    full_title_list.append(titles_list[j].text)
+                for i in range(0, len(full_title_list)):
+                    full_title_list[i] = Parser.__replace_elem_for_windows(full_title_list[i])
+            for i in range(0, len(genomes_url_list)):
+                driver.get(url=f'https://www.ncbi.nlm.nih.gov{genomes_url_list[i]}')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                if not FileSystem.is_exist(f'{full_title_list[i]}.html',
+                                           f'{FileSystem.get_directory()}data_parser\\'
+                                           f'{string_request}\\Proteins\\Structure\\'):
+                    time.sleep(TIME_SLEEP * 2)
+                    pyautogui.hotkey('ctrl', 's')
+                    time.sleep(TIME_SLEEP * 2)
+                    pyautogui.typewrite(
+                        f'{FileSystem.get_directory()}data_parser\\'
+                        f'{string_request}\\Proteins\\Structure\\{full_title_list[i]}.html')
                     time.sleep(TIME_SLEEP / 2)
                     pyautogui.hotkey('enter')
                     time.sleep(TIME_SLEEP * 2)

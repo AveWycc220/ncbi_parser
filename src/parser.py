@@ -92,7 +92,8 @@ class Parser:
             Parser.__sra(request)
         elif catalog == '4':
             #Parser.__cdd(request)
-            Parser.__ipg(request)
+            #Parser.__ipg(request)
+            Parser.__proteinclusters(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -1185,3 +1186,31 @@ class Parser:
                     except NoSuchElementException:
                         pass
             Parser.__close_chrome(driver)
+
+    @staticmethod
+    def __proteinclusters(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/proteinclusters/?term={request}').content.decode('utf-8')
+        options = Options()
+        options.add_argument("--start-maximized")
+        driver = webdriver.Chrome(executable_path=FileSystem.get_driver(), options=options)
+        driver.get(url=f'https://www.ncbi.nlm.nih.gov/proteinclusters/?term={request}')
+        soup = BeautifulSoup(content, 'html.parser')
+        if not soup.findAll(True, {'class': 'warn'}):
+            full_title = soup.findAll(True, {'class':'Title'})[0].text
+            full_title = Parser.__replace_elem_for_windows(full_title)
+            if not FileSystem.is_exist(f'{full_title}.html',
+                                       f'{FileSystem.get_directory()}data_parser\\'
+                                       f'{string_request}\\Proteins\\Protein Clusters\\'):
+                time.sleep(TIME_SLEEP * 2)
+                pyautogui.hotkey('ctrl', 's')
+                time.sleep(TIME_SLEEP * 2)
+                pyautogui.typewrite(
+                    f'{FileSystem.get_directory()}data_parser\\'
+                    f'{string_request}\\Proteins\\Protein Clusters\\{full_title}.html')
+                time.sleep(TIME_SLEEP * 2)
+                pyautogui.hotkey('enter')
+                time.sleep(TIME_SLEEP * 2)
+            Parser.__close_chrome(driver)
+

@@ -35,6 +35,7 @@ class Parser:
         FileSystem.create_folder('Literature', request)
         FileSystem.create_folder('Genes', request)
         FileSystem.create_folder('Genomes', request)
+        FileSystem.create_folder('Proteins', request)
         if catalog == '1':
             Parser.__books(request)
             Parser.__mesh(request)
@@ -68,14 +69,29 @@ class Parser:
         elif catalog == '2.5':
             Parser.__popset(request)
         elif catalog == '3':
-            #Parser.__assembly(request)
-            #Parser.__biocollections(request)
-            #Parser.__bioproject(request)
-            #Parser.__biosample(request)
-            #Parser.__genome(request)
-            #Parser.__nuccore(request)
+            Parser.__assembly(request)
+            Parser.__biocollections(request)
+            Parser.__bioproject(request)
+            Parser.__biosample(request)
+            Parser.__genome(request)
+            Parser.__nuccore(request)
             Parser.__sra(request)
-
+        elif catalog == '3.1':
+            Parser.__assembly(request)
+        elif catalog == '3.2':
+            Parser.__biocollections(request)
+        elif catalog == '3.3':
+            Parser.__bioproject(request)
+        elif catalog == '3.4':
+            Parser.__biosample(request)
+        elif catalog == '3.5':
+            Parser.__genome(request)
+        elif catalog == '3.6':
+            Parser.__nuccore(request)
+        elif catalog == '3.7':
+            Parser.__sra(request)
+        elif catalog == '4':
+            Parser.__cdd(request)
 
     @staticmethod
     def __replace_elem_in_request(request):
@@ -1045,7 +1061,6 @@ class Parser:
                     driver.get(url=f'https://www.ncbi.nlm.nih.gov{genomes_url_list[i]}')
                     soup = BeautifulSoup(driver.page_source, 'html.parser')
                     full_title = soup.findAll(True, {"class": "details"})[0].b.text
-                    print(full_title)
                     full_title = Parser.__replace_elem_for_windows(full_title)
                     if not FileSystem.is_exist(f'{full_title}.html',
                                                f'{FileSystem.get_directory()}data_parser\\'
@@ -1056,6 +1071,54 @@ class Parser:
                         pyautogui.typewrite(
                             f'{FileSystem.get_directory()}data_parser\\'
                             f'{string_request}\\Genomes\\SRA\\{full_title}.html')
+                        time.sleep(TIME_SLEEP / 2)
+                        pyautogui.hotkey('enter')
+                        time.sleep(TIME_SLEEP * 2)
+            Parser.__close_chrome(driver)
+
+    @staticmethod
+    def __cdd(request):
+        string_request = request
+        request = Parser.__replace_elem_in_request(request)
+        content = requests.get(f'https://www.ncbi.nlm.nih.gov/cdd/?term={request}').content.decode('utf-8')
+        options = Options()
+        options.add_argument("--start-maximized")
+        driver = webdriver.Chrome(executable_path=FileSystem.get_driver(), options=options)
+        driver.get(url=f'https://www.ncbi.nlm.nih.gov/cdd/?term={request}')
+        soup = BeautifulSoup(content, 'html.parser')
+        content_list = []
+        genomes_url_list = []
+        full_title_list = []
+        if not soup.findAll(True, {'class': 'warn'}):
+            content_list.append(driver.page_source)
+            try:
+                next = driver.find_element_by_class_name('next')
+                for i in range(20):
+                    next.click()
+                    content_list.append(driver.page_source)
+                    next = driver.find_element_by_class_name('next')
+            except NoSuchElementException:
+                pass
+            for i in range(0, len(content_list)):
+                soup = BeautifulSoup(content_list[i], 'html.parser')
+                titles_list = soup.findAll(True, {"class": "title"})
+                for j in range(0, len(titles_list)):
+                    genomes_url_list.append(titles_list[j].a['href'])
+                    full_title_list.append(titles_list[j].text)
+                for i in range(0, len(full_title_list)):
+                    full_title_list[i] = Parser.__replace_elem_for_windows(full_title_list[i])
+                for i in range(0, len(genomes_url_list)):
+                    driver.get(url=f'https://www.ncbi.nlm.nih.gov{genomes_url_list[i]}')
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    if not FileSystem.is_exist(f'{full_title_list[i]}.html',
+                                               f'{FileSystem.get_directory()}data_parser\\'
+                                               f'{string_request}\\Proteins\\Conversed Domains\\'):
+                        time.sleep(TIME_SLEEP * 5)
+                        pyautogui.hotkey('ctrl', 's')
+                        time.sleep(TIME_SLEEP * 2)
+                        pyautogui.typewrite(
+                            f'{FileSystem.get_directory()}data_parser\\'
+                            f'{string_request}\\Proteins\\Conversed Domains\\{full_title_list[i]}.html')
                         time.sleep(TIME_SLEEP / 2)
                         pyautogui.hotkey('enter')
                         time.sleep(TIME_SLEEP * 2)

@@ -42,6 +42,34 @@ class FileSystem:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Homologene')
             if 'PopSet' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
                 os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\PopSet')
+        if type == 'Genomes':
+            if 'Assembly' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Assembly')
+            if 'Biocollections' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Biocollections')
+            if 'Bioproject' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Bioproject')
+            if 'Biosample' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Biosample')
+            if 'Genome' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Genome')
+            if 'Nucleotide' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Nucleotide')
+            if 'SRA' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\SRA')
+        if type == 'Proteins':
+            if 'Conversed Domains' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Conversed Domains')
+            if 'Identical Protein Group' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Identical Protein Group')
+            if 'Protein' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Protein')
+            if 'Protein Clusters' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Protein Clusters')
+            if 'Sparcle' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Sparcle')
+            if 'Structure' not in os.listdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\') and request:
+                os.mkdir(path=f'{THIS_FOLDER}\\..\\data_parser\\{request}\\{type}\\Structure')
 
     @staticmethod
     def create_categoies_folders(request, categories):

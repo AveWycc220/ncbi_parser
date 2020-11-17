@@ -11,6 +11,7 @@ lxml = "*"
 bs4 = "*"
 selenium = "*"
 pyautogui = "*"
+pyinstaller = "*"
 
 [requires]
 python_version = "3.8"

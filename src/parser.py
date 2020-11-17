@@ -1349,7 +1349,7 @@ class Parser:
             content_list.append(driver.page_source)
             try:
                 next = driver.find_element_by_class_name('next')
-                for i in range(2):
+                for i in range(20):
                     next.click()
                     content_list.append(driver.page_source)
                     next = driver.find_element_by_class_name('next')
